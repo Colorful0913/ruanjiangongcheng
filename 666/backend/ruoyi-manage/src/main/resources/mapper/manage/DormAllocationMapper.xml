@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.manage.mapper.DormAllocationMapper">
+    
+    <resultMap type="DormAllocation" id="DormAllocationResult">
+        <result property="allocationId"    column="allocation_id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="roomId"    column="room_id"    />
+
+<!--        <result property="studentNumber" column="studentNumber"/>-->
+<!--        <result property="studentName" column="studentName"/>-->
+<!--        <result property="roomNumber" column="roomNumber"/>-->
+<!--        <result property="buildingCode" column="buildingCode"/>-->
+
+        <result property="studentNumber" column="student_number"/>
+        <result property="studentName" column="student_name"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="buildingCode" column="building_code"/>
+
+
+
+        <result property="bedNumber"    column="bed_number"    />
+        <result property="checkInDate"    column="check_in_date"    />
+        <result property="checkOutDate"    column="check_out_date"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+<!--    <sql id="selectDormAllocationVo">-->
+<!--        select allocation_id, student_id, room_id, bed_number, check_in_date, check_out_date, status, del_flag, create_by, create_time, update_by, update_time, remark from tb_dorm_allocation-->
+<!--    </sql>-->
+
+
+    <!-- 修改 selectDormAllocationVo -->
+<!--    <sql id="selectDormAllocationVo">-->
+<!--        select da.allocation_id, da.student_id, da.room_id, da.bed_number, da.check_in_date, da.check_out_date, da.status, da.del_flag, da.create_by, da.create_time, da.update_by, da.update_time, da.remark,-->
+<!--               ds.student_number as studentNumber,-->
+<!--               ds.remark as studentName,-->
+<!--               dr.room_number as roomNumber,-->
+<!--               db.building_code as buildingCode-->
+<!--        from tb_dorm_allocation da-->
+<!--                 left join tb_dorm_student ds on da.student_id = ds.student_id-->
+<!--                 left join tb_dorm_room dr on da.room_id = dr.room_id-->
+<!--                 left join tb_dorm_building db on dr.building_id = db.building_id-->
+<!--    </sql>-->
+
+
+    <!-- 修改 selectDormAllocationVo 查询语句 -->
+    <sql id="selectDormAllocationVo">
+        select da.allocation_id, da.student_id, da.room_id, da.bed_number, da.check_in_date, da.check_out_date, da.status, da.del_flag, da.create_by, da.create_time, da.update_by, da.update_time, da.remark,
+               ds.student_number, ds.remark as student_name,
+               dr.room_number,
+               db.building_code
+        from tb_dorm_allocation da
+                 left join tb_dorm_student ds on da.student_id = ds.student_id
+                 left join tb_dorm_room dr on da.room_id = dr.room_id
+                 left join tb_dorm_building db on dr.building_id = db.building_id
+    </sql>
+
+
+
+<!--    <select id="selectDormAllocationList" parameterType="DormAllocation" resultMap="DormAllocationResult">-->
+<!--        <include refid="selectDormAllocationVo"/>-->
+<!--        <where>  -->
+<!--            <if test="studentId != null "> and student_id = #{studentId}</if>-->
+<!--            <if test="roomId != null "> and room_id = #{roomId}</if>-->
+<!--            <if test="bedNumber != null  and bedNumber != ''"> and bed_number = #{bedNumber}</if>-->
+<!--            <if test="checkInDate != null "> and check_in_date = #{checkInDate}</if>-->
+<!--            <if test="checkOutDate != null "> and check_out_date = #{checkOutDate}</if>-->
+<!--            <if test="status != null  and status != ''"> and status = #{status}</if>-->
+<!--        </where>-->
+<!--    </select>-->
+
+
+    <select id="selectDormAllocationList" parameterType="DormAllocation" resultMap="DormAllocationResult">
+        <include refid="selectDormAllocationVo"/>
+        <where>
+            <if test="studentId != null "> and da.student_id = #{studentId}</if>
+            <if test="roomId != null "> and da.room_id = #{roomId}</if>
+            <if test="bedNumber != null  and bedNumber != ''"> and da.bed_number = #{bedNumber}</if>
+            <if test="checkInDate != null "> and da.check_in_date = #{checkInDate}</if>
+            <if test="checkOutDate != null "> and da.check_out_date = #{checkOutDate}</if>
+            <if test="status != null  and status != ''"> and da.status = #{status}</if>
+
+            <!-- 添加新的查询条件 -->
+            <if test="studentNumber != null and studentNumber != ''"> and ds.student_number like concat('%', #{studentNumber}, '%')</if>
+            <if test="studentName != null and studentName != ''"> and ds.remark like concat('%', #{studentName}, '%')</if>
+            <if test="buildingCode != null and buildingCode != ''"> and db.building_code like concat('%', #{buildingCode}, '%')</if>
+            <if test="roomNumber != null and roomNumber != ''"> and dr.room_number like concat('%', #{roomNumber}, '%')</if>
+
+            <if test="buildingId != null"> and db.building_id = #{buildingId}</if>
+
+
+        </where>
+    </select>
+
+
+
+    <select id="selectDormAllocationByAllocationId" parameterType="Long" resultMap="DormAllocationResult">
+        <include refid="selectDormAllocationVo"/>
+        where allocation_id = #{allocationId}
+    </select>
+
+    <select id="countByRoomId" parameterType="Long" resultType="Long">
+        SELECT COUNT(*) FROM tb_dorm_allocation
+        WHERE room_id = #{roomId} AND status = '0' AND del_flag = '0'
+    </select>
+
+
+    <!-- 添加对应的SQL查询 -->
+    <select id="countActiveByRoomId" parameterType="Long" resultType="Long">
+        SELECT COUNT(*) FROM tb_dorm_allocation
+        WHERE room_id = #{roomId} AND status = '0' AND del_flag = '0'
+    </select>
+
+
+
+    <insert id="insertDormAllocation" parameterType="DormAllocation" useGeneratedKeys="true" keyProperty="allocationId">
+        insert into tb_dorm_allocation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">student_id,</if>
+            <if test="roomId != null">room_id,</if>
+            <if test="bedNumber != null and bedNumber != ''">bed_number,</if>
+            <if test="checkInDate != null">check_in_date,</if>
+            <if test="checkOutDate != null">check_out_date,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">#{studentId},</if>
+            <if test="roomId != null">#{roomId},</if>
+            <if test="bedNumber != null and bedNumber != ''">#{bedNumber},</if>
+            <if test="checkInDate != null">#{checkInDate},</if>
+            <if test="checkOutDate != null">#{checkOutDate},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDormAllocation" parameterType="DormAllocation">
+        update tb_dorm_allocation
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="roomId != null">room_id = #{roomId},</if>
+            <if test="bedNumber != null and bedNumber != ''">bed_number = #{bedNumber},</if>
+            <if test="checkInDate != null">check_in_date = #{checkInDate},</if>
+            <if test="checkOutDate != null">check_out_date = #{checkOutDate},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where allocation_id = #{allocationId}
+    </update>
+
+    <delete id="deleteDormAllocationByAllocationId" parameterType="Long">
+        delete from tb_dorm_allocation where allocation_id = #{allocationId}
+    </delete>
+
+    <delete id="deleteDormAllocationByAllocationIds" parameterType="String">
+        delete from tb_dorm_allocation where allocation_id in 
+        <foreach item="allocationId" collection="array" open="(" separator="," close=")">
+            #{allocationId}
+        </foreach>
+    </delete>
+</mapper>
